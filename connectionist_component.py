@@ -37,7 +37,8 @@ def train_test_split1(*arrays, test_size=0.25, shufffle=True, random_seed=1):
     :return: return 2*len(arrays) divided into train ans test
     """
     # checks
-    assert 0 < test_size < 1
+    #assert 0 < test_size < 1
+    assert 0 <= test_size < 1
     assert len(arrays) > 0
     length = len(arrays[0])
     for i in arrays:
