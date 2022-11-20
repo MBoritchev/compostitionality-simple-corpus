@@ -39,7 +39,7 @@ def train_test_split1(*arrays, test_size=0.25, shufffle=True, random_seed=1):
     :return: return 2*len(arrays) divided into train ans test
     """
     # checks
-    #assert 0 < test_size < 1
+    #assert 0 < test_size < 1    
     assert 0 <= test_size < 1
     assert len(arrays) > 0
     length = len(arrays[0])
@@ -56,6 +56,8 @@ def train_test_split1(*arrays, test_size=0.25, shufffle=True, random_seed=1):
     else:
         train_indices = np.arange(n_train)
         test_indices = np.arange(n_train, length)
+
+    print('hola Manuel!')    
 
     return list(chain.from_iterable((_indexing(x, train_indices), _indexing(x, test_indices)) for x in arrays))
 
@@ -216,8 +218,7 @@ def fit_model(X, Y, model_type = 'MLP', **options):
         opt = 'Adam'
 
     # DATA SPLIT    
-    val_size = split[1] / (1 - split[2])
-    print(val_size)
+    val_size = split[1] / (1 - split[2])    
     #if split[2] == 0:
     #    X_train = X
     #    Y_train = Y
