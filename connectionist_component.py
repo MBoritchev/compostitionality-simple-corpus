@@ -9,7 +9,7 @@ from itertools import chain # F new
 from keras.models import Sequential
 from keras.layers import SimpleRNN, Dense
 from keras import initializers
-from sklearn.model_selection import train_test_split
+#from sklearn.model_selection import train_test_split
 
 #from data_encoding import premise_decoder
 
@@ -26,6 +26,8 @@ def _indexing(x, indices):
 
     # list indexing
     return [x[idx] for idx in indices]
+
+
 
 def train_test_split1(*arrays, test_size=0.25, shufffle=True, random_seed=1):
     """
@@ -216,12 +218,12 @@ def fit_model(X, Y, model_type = 'MLP', **options):
     # DATA SPLIT    
     val_size = split[1] / (1 - split[2])
     print(val_size)
-    if split[2] == 0:
-        X_train = X
-        Y_train = Y
-    else:
+    #if split[2] == 0:
+    #    X_train = X
+    #    Y_train = Y
+    #else:
         #X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = split[2], stratify = strat)
-        X_train, X_test, Y_train, Y_test = train_test_split1(X, Y, test_size = split[2])
+    X_train, X_test, Y_train, Y_test = train_test_split1(X, Y, test_size = split[2])
 
     # MODEL DEFINITION    
     model = Sequential() # instantiation of NN
