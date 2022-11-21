@@ -14,55 +14,38 @@ from keras import initializers
 #from data_encoding import premise_decoder
 
 
-def _indexing(x, indices):
-    """
-    :param x: array from which indices has to be fetched
-    :param indices: indices to be fetched
-    :return: sub-array from given array and indices
-    """
-    # np array indexing
-    if hasattr(x, 'shape'):
-        return x[indices]
+# def _indexing(x, indices):
+#     """
+#     :param x: array from which indices has to be fetched
+#     :param indices: indices to be fetched
+#     :return: sub-array from given array and indices
+#     """
+#     # np array indexing
+#     if hasattr(x, 'shape'):
+#         return x[indices]
 
-    # list indexing
-    return [x[idx] for idx in indices]
+#     # list indexing
+#     return [x[idx] for idx in indices]
 
-
-
-def train_test_split1(*arrays, test_size=0.25, shufffle=True, random_seed=1):
-    """
-    splits array into train and test data.
-    :param arrays: arrays to split in train and test
-    :param test_size: size of test set in range (0,1)
-    :param shufffle: whether to shuffle arrays or not
-    :param random_seed: random seed value
-    :return: return 2*len(arrays) divided into train ans test
-    """
+def train_test_split1(*arrays, test_size=0.25, random_seed=None):
     # checks
-    #assert 0 < test_size < 1    
     assert 0 <= test_size < 1
-    assert len(arrays) > 0
+    #assert len(arrays) > 0
     length = len(arrays[0])
-    for i in arrays:
-        assert len(i) == length
+    # for i in arrays:
+    #     assert len(i) == length
 
     n_test = int(np.ceil(length*test_size))
     n_train = length - n_test
 
-    if shufffle:
-        perm = np.random.RandomState(random_seed).permutation(length)
-        test_indices = perm[:n_test]
-        train_indices = perm[n_test:]
-    else:
-        train_indices = np.arange(n_train)
-        test_indices = np.arange(n_train, length)
+    perm = np.random.RandomState(random_seed).permutation(length)
+    test_indices = perm[:n_test]
+    train_indices = perm[n_test:]
 
-    print('hola Manuel!')    
-
-    return list(chain.from_iterable((_indexing(x, train_indices), _indexing(x, test_indices)) for x in arrays))
+    return list(chain.from_iterable((x[train_indices], x[test_indices]) for x in arrays))
 
 # STATISTICS
-# create a log of results (proofs of length 1)
+# create a log of results (proofs of length n)
 def log_results(all_pred, Y, n):
     f = open('log_results_{}.txt'.format(n), 'w') # LOG
 
@@ -171,33 +154,37 @@ def fit_model(X, Y, model_type = 'MLP', **options):
     # number of perceptrons per layer
     if 'n_perceptrons' in options.keys():
         n_perceptrons = options['n_perceptrons'] # integer > 0
+    # else:
+    #     n_perceptrons = 500 # default value
+    elif model_type == 'MLP':
+        n_perceptrons = 2500
     else:
-        n_perceptrons = 500 # default value
+        n_perceptrons = 200
 
     # number of hidden layers
-    if 'h_layers' in options.keys():
-        h_layers = options['h_layers'] # integer > 0
-    else:
-        h_layers = 3 # default value
+    # if 'h_layers' in options.keys():
+    #     h_layers = options['h_layers'] # integer > 0
+    # else:
+    #     h_layers = 1 # default value
 
     # number of epochs
     if 'n_epochs' in options.keys():
         n_epochs = options['n_epochs'] # integer > 0
     else:
-        n_epochs = 30 # default value
+        n_epochs = 200 # default value
 
-    # batch size
+    # batch size: update parameters every (all_samples/batch_size) samples
     if 'batch_size' in options.keys():
-        batch_size = options['batch_size'] # integer > 1
+        batch_size = options['batch_size'] # integer > 0
     else:
-        batch_size = 32 # default value: update parameters every (all_samples/32) samples
+        batch_size = 20 # default value: 
 
     # percentages of the split
     if 'split' in options.keys():
         split = options['split'] # list of percentages for training/validation/test
         assert sum(split) == 1, 'The sum of all values in "split" must be exactly 1'
     else:
-        split = [0.5, 0.25, 0.25] # default value
+        split = [0.65, 0.1, 0.25] # default value
 
     # stratification
     if 'stratify' in options.keys() and options['stratify'] == False: # do not stratify split
@@ -209,7 +196,7 @@ def fit_model(X, Y, model_type = 'MLP', **options):
     if 'activation_function' in options.keys():
         activation_function = options['activation_function']
     else:
-        activation_function = 'relu'
+        activation_function = 'tanh'
 
     # optimizers: SGD, RMSprop, Adam, Adadelta, Adagrad, Adamax, Nadam, Ftrl
     if 'optimizer' in options.keys():
@@ -230,11 +217,11 @@ def fit_model(X, Y, model_type = 'MLP', **options):
     model = Sequential() # instantiation of NN
 
     # hidden layers according to model type
-    # Multilayer Perceptron
+    # Multilayer Perceptron (1 layer)
     if model_type == 'MLP':
         model.add(Dense(n_perceptrons, input_dim = X.shape[1], activation=activation_function)) # hidden layer 1
-        for i in range(h_layers-1):
-            model.add(Dense(n_perceptrons, activation=activation_function)) # hidden layer(s)
+        # for i in range(h_layers-1):
+        #     model.add(Dense(n_perceptrons, activation=activation_function)) # hidden layer(s)
 
     # Simple Recurrent Neural Network (2 layers)
     elif model_type == 'RNN':
