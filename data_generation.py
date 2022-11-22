@@ -5,7 +5,6 @@
 from random import randint, random, shuffle
 from json import dump
 from os import getcwd
-from colour import Color
 
 # FUNCTIONS TO CREATE THE PROOFS
 def prem(i, t):
@@ -93,28 +92,28 @@ def create_proofs(G, V, n_prem=['all']):
     return proofs, sproofs
 
 # CREATION OF TREE-LIKE STRUCTURES     
-def dag_from_file(filename):
-    f = open(filename, 'r')
-    g = f.readlines()
-    f.close()
+# def dag_from_file(filename):
+#     f = open(filename, 'r')
+#     g = f.readlines()
+#     f.close()
 
-    i = 1
-    levels = []
-    literals = []
-    E = []
-    for line in g:    
-        if line.find(',') > 0:
-            p = line.find('[')
-            curr_literals = line[:p].strip().split(', ')        
-            levels += [(i, x) for x in curr_literals]
-            literals += curr_literals
-            i += 1
-        else:
-            p = line.find('->')
-            if p > 0:
-                E.append((line[:p], line[p+2:-2]))
+#     i = 1
+#     levels = []
+#     literals = []
+#     E = []
+#     for line in g:    
+#         if line.find(',') > 0:
+#             p = line.find('[')
+#             curr_literals = line[:p].strip().split(', ')        
+#             levels += [(i, x) for x in curr_literals]
+#             literals += curr_literals
+#             i += 1
+#         else:
+#             p = line.find('->')
+#             if p > 0:
+#                 E.append((line[:p], line[p+2:-2]))
 
-    return E, levels, literals
+#     return E, levels, literals
 
 def one_path(cn, GP, E):
     '''
@@ -213,26 +212,26 @@ def sub_proofs_summary(KB, KB_filter=None):
     return summary
 
 
-def sub_proofs_summary1(sp, filter=None):    
-    print('Proof\t       ', 'S(P)   ', 'R(P)\t')
-    #for k,i in sp.items():        
-    for k,i in sorted(sp.items(), key=lambda item: len(item[1]), reverse=True):
-        if (filter == None) or (k in filter):            
-            print(k, len(i), sum([p[1] for p in i]), sep='\t')
+# def sub_proofs_summary1(sp, filter=None):    
+#     print('Proof\t       ', 'S(P)   ', 'R(P)\t')
+#     #for k,i in sp.items():        
+#     for k,i in sorted(sp.items(), key=lambda item: len(item[1]), reverse=True):
+#         if (filter == None) or (k in filter):            
+#             print(k, len(i), sum([p[1] for p in i]), sep='\t')
 
-def sub_proofs_summary2(sp):
-    #sp = kb['sample 1']['Sub_proofs']
-    overlapping = {}
-    for k in sp.keys():
-        overlapping[k] = []
-        for m in sp.keys():
-            if k in sp[m]:
-                overlapping[k].append(m)
+# def sub_proofs_summary2(sp):
+#     #sp = kb['sample 1']['Sub_proofs']
+#     overlapping = {}
+#     for k in sp.keys():
+#         overlapping[k] = []
+#         for m in sp.keys():
+#             if k in sp[m]:
+#                 overlapping[k].append(m)
 
-    print('Proof\t', 'Frequency', sep='\t')
-    print('-------------------------')
-    for k, v in sorted(overlapping.items(), key=lambda item: len(item[1]), reverse=True):
-        print(k, len(v), sep='\t')
+#     print('Proof\t', 'Frequency', sep='\t')
+#     print('-------------------------')
+#     for k, v in sorted(overlapping.items(), key=lambda item: len(item[1]), reverse=True):
+#         print(k, len(v), sep='\t')
 
 # FUNCTIONS TO WRITE THE DATA TO A FILE
 def save_data(KB, filename):    
@@ -243,7 +242,27 @@ def save_data(KB, filename):
         dump(KB, file)
         file.close()        
 
-def create_dot(E, levels, filename, w_color):
+# def create_dot(E, levels, filename, w_color):
+#     '''           
+#     writes a graphviz script (DOT language) 
+#     from a set of edges E to a file 'filename'
+#     '''    
+#     L = max([l for (l,_) in levels])
+#     f = open(filename, 'w')    
+#     f.write('digraph G {\n')
+#     if w_color:
+#         red = Color("red")
+#         colors = list(red.range_to(Color("green"), L))
+#         f.write(' {\n node [style=filled]\n')
+#         for i in range(1, L+1):
+#             f.write(' {} [color="{}"]\n'.format(', '.join(str(e) for e in [n for (r,n) in levels if r==i]), colors[i-1]))
+#         f.write(' }\n')
+
+#     for n1, n2 in E:
+#         f.write('{}->{};\n'.format(n1,n2))
+#     f.write('}')
+#     f.close() 
+def create_dot(E, levels, filename):
     '''           
     writes a graphviz script (DOT language) 
     from a set of edges E to a file 'filename'
@@ -251,18 +270,12 @@ def create_dot(E, levels, filename, w_color):
     L = max([l for (l,_) in levels])
     f = open(filename, 'w')    
     f.write('digraph G {\n')
-    if w_color:
-        red = Color("red")
-        colors = list(red.range_to(Color("green"), L))
-        f.write(' {\n node [style=filled]\n')
-        for i in range(1, L+1):
-            f.write(' {} [color="{}"]\n'.format(', '.join(str(e) for e in [n for (r,n) in levels if r==i]), colors[i-1]))
-        f.write(' }\n')
 
     for n1, n2 in E:
         f.write('{}->{};\n'.format(n1,n2))
     f.write('}')
     f.close() 
+
 
 # FUNCTIONS TO SPLIT DATA (TRAIN/TEST) FROM A KB
 # STRATIFICATION BY LENGHT OF PROOFS
@@ -336,7 +349,7 @@ def split_knowledge_base(KB, filename=None, perc={}, test_perc=0.25):
 
 # MAIN FUNCTION
 # to print a function description use 'print(foo.__doc__)'
-def create_knowledge_base(filename = 'sample1', **options):
+def create_knowledge_base(filename = 'kb_1', **options):
     '''
     Creates a single knowledge base with at most one path to every node.
     Options:
@@ -352,13 +365,13 @@ def create_knowledge_base(filename = 'sample1', **options):
     if 'n_levels' in options.keys():
         L = options['n_levels'] # integer > 1
     else:
-        L = 10 # default value
+        L = 11 # default value
 
     # range of nodes per level
     if 'range_per_level' in options.keys():
         min_n, max_n = options['range_per_level'] # range: pair of integers
     else:
-        min_n, max_n = (10, 20) # default range
+        min_n, max_n = (3, 6) # default range
     
     # probability of adding an edge between two nodes
     if 'probability' in options.keys():
@@ -368,7 +381,7 @@ def create_knowledge_base(filename = 'sample1', **options):
 
     # number of used premises for each proof
     if 'used_premises' in options.keys():
-        n_prem = options['used_premises'] # list of integers: used premises in a proof
+        n_prem = options['used_premises'] # list of integers: number of used premises in a proof
     else:
         n_prem = ['all'] # default number (all)
 
@@ -378,17 +391,17 @@ def create_knowledge_base(filename = 'sample1', **options):
     else:
         files = True # default value
 
-    # colored graph
-    if 'colored_graph' in options.keys():
-        w_color = options['colored_graph'] # bool: if 'False', then creates a graph without coloring
-    else:
-        w_color = True # default value
+    # # colored graph
+    # if 'colored_graph' in options.keys():
+    #     w_color = options['colored_graph'] # bool: if 'False', then creates a graph without coloring
+    # else:
+    #     w_color = True # default value
 
     # provided graph
-    if 'graph' in options.keys():
-        graph = options['graph'] # a '.gv' filename
-    else:
-        graph = None # no graph provided (default)
+    # if 'graph' in options.keys():
+    #     graph = options['graph'] # a '.gv' filename
+    # else:
+    #     graph = None # no graph provided (default)
 
     # create more than one sample (with literals shuffled)
     if 'samples' in options.keys():
@@ -421,14 +434,13 @@ def create_knowledge_base(filename = 'sample1', **options):
     KB['Summary'] = KB_summary(proofs, len(literals), len(premises), samples)
     # SAVE DICTIONARY AND GRAPH TO FILES
     if files:    
-        #TODO: validate, must be valid names
-        #file_gv = filename + '.gv'     # graphviz file name
+        file_gv = filename + '.gv'     # graphviz file name
         file_json = filename + '.json' # json file name
 
         save_data(KB, file_json)
-        #create_dot(E, levels, file_gv, w_color)
+        create_dot(E, levels, file_gv)
 
-        #print('The files "{}" and "{}" have been created in "{}"'.format(file_json, file_gv, getcwd()))
+        print('The files "{}" and "{}" have been created in "{}"'.format(file_json, file_gv, getcwd()))
 
     return KB 
 

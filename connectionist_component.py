@@ -4,11 +4,11 @@
 # ====================================
 import matplotlib.pyplot as plt
 import numpy as np
-from itertools import chain # F new
+#from itertools import chain # F new
 
 from keras.models import Sequential
 from keras.layers import SimpleRNN, Dense
-from keras import initializers
+#from keras import initializers
 #from sklearn.model_selection import train_test_split
 
 #from data_encoding import premise_decoder
@@ -27,22 +27,29 @@ from keras import initializers
 #     # list indexing
 #     return [x[idx] for idx in indices]
 
-def train_test_split1(*arrays, test_size=0.25, random_seed=None):
-    # checks
-    assert 0 <= test_size < 1
-    #assert len(arrays) > 0
+# def train_test_split(*arrays, test_size=0.25, random_seed=None):
+#     # checks
+#     assert 0 <= test_size < 1
+#     #assert len(arrays) > 0
+#     length = len(arrays[0])
+#     # for i in arrays:
+#     #     assert len(i) == length
+
+#     n_test = int(np.ceil(length*test_size))
+#     n_train = length - n_test
+
+#     perm = np.random.RandomState(random_seed).permutation(length)
+#     test_indices = perm[:n_test]
+#     train_indices = perm[n_test:]
+
+#     return list(chain.from_iterable((x[train_indices], x[test_indices]) for x in arrays))
+
+def permute(*arrays, random_seed=None):
+    assert len(arrays) > 0
     length = len(arrays[0])
-    # for i in arrays:
-    #     assert len(i) == length
-
-    n_test = int(np.ceil(length*test_size))
-    n_train = length - n_test
-
     perm = np.random.RandomState(random_seed).permutation(length)
-    test_indices = perm[:n_test]
-    train_indices = perm[n_test:]
 
-    return list(chain.from_iterable((x[train_indices], x[test_indices]) for x in arrays))
+    return [x[perm] for x in arrays]
 
 # STATISTICS
 # create a log of results (proofs of length n)
@@ -99,7 +106,7 @@ def stats(all_pred, Y_train, Y_test):
     print('Overall correct tests = {}%'.format(overall))
     print('Overall correct valid tests = {}%'.format(overall_p))
     print()
-    print('Used', 'Train', 'Test', 'Correct', 'Percentage', sep='\t')
+    print('Length', 'Train', 'Test', 'Correct', 'Percentage', sep='\t')
     print('------------------------------------------')
     for i in sorted(statistics):
         train = statistics[i][0]
@@ -180,17 +187,17 @@ def fit_model(X, Y, model_type = 'MLP', **options):
         batch_size = 20 # default value: 
 
     # percentages of the split
-    if 'split' in options.keys():
-        split = options['split'] # list of percentages for training/validation/test
-        assert sum(split) == 1, 'The sum of all values in "split" must be exactly 1'
-    else:
-        split = [0.65, 0.1, 0.25] # default value
+    # if 'split' in options.keys():
+    #     split = options['split'] # list of percentages for training/validation/test
+    #     assert sum(split) == 1, 'The sum of all values in "split" must be exactly 1'
+    # else:
+    #     split = [0.65, 0.1, 0.25] # default value
 
     # stratification
-    if 'stratify' in options.keys() and options['stratify'] == False: # do not stratify split
-        strat = None
-    else:
-        strat = [sum(y) for y in Y] # default option    
+    # if 'stratify' in options.keys() and options['stratify'] == False: # do not stratify split
+    #     strat = None
+    # else:
+    #     strat = [sum(y) for y in Y] # default option    
 
     # MLP activation function for hidden layers:
     if 'activation_function' in options.keys():
@@ -205,13 +212,14 @@ def fit_model(X, Y, model_type = 'MLP', **options):
         opt = 'Adam'
 
     # DATA SPLIT    
-    val_size = split[1] / (1 - split[2])    
+    #val_size = split[1] / (1 - split[2])    
     #if split[2] == 0:
     #    X_train = X
     #    Y_train = Y
     #else:
         #X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = split[2], stratify = strat)
-    X_train, X_test, Y_train, Y_test = train_test_split1(X, Y, test_size = split[2])
+    #X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = split[2])
+    X_train, Y_train = permute(X, Y)
 
     # MODEL DEFINITION    
     model = Sequential() # instantiation of NN
@@ -235,15 +243,15 @@ def fit_model(X, Y, model_type = 'MLP', **options):
     model.compile(loss='binary_crossentropy', optimizer=opt, metrics=['accuracy'])
 
     # fit model on the dataset
-    H = model.fit(X_train, Y_train, batch_size=batch_size, epochs=n_epochs, verbose=1, validation_split = val_size)
+    H = model.fit(X_train, Y_train, batch_size=batch_size, epochs=n_epochs, verbose=1, validation_split = 0.1)
 
     if model_name != None:
         model.save(model_name)
     if plot:
         plot_loss_accuracy(H.history['loss'], H.history['val_loss'], H.history['accuracy'], H.history['val_accuracy']) 
 
-    if split[2] > 0:
-        stats(model.predict(X_test), Y_train, Y_test)
+    # if split[2] > 0:
+    #     stats(model.predict(X_test), Y_train, Y_test)
 
     return model
 
@@ -266,15 +274,15 @@ def show_results(all_pred, Y):
     #log_results(all_pred, Y) # create a log file text
 
     # print statistics from dictionary    
-    print('Total number of tests performed =', len(Y))
+    print('Number of tests performed =', len(Y))
 
     overall = np.round(100 * sum([results[i][1] for i in results.keys()]) / len(Y), decimals=2)
     overall_p = np.round(100 * sum([results[i][1] for i in results.keys() if i != 0]) / len([y for y in Y if sum(y) > 0]), decimals=2)
-    print('Overall correct tests = {}%'.format(overall))
-    print('Overall correct valid tests = {}%'.format(overall_p))
+    print('Correct tested hypotheses = {}%'.format(overall))
+    print('Correct tested valid hypotheses = {}%'.format(overall_p))
 
     print()
-    print('Pr_used', 'Tested', 'Correct', 'Percentage', sep='\t')
+    print('Length', 'Tested', 'Correct', 'Percentage', sep='\t')
     print('----------------------------------')
     for i in sorted(results):
         test = results[i][0]
@@ -284,5 +292,3 @@ def show_results(all_pred, Y):
         else: 
             percentage = np.round((correct*100)/test, decimals=2)        
         print(i, test, correct, '{}%'.format(percentage), sep='\t')
-
-    return results
