@@ -8,41 +8,6 @@ import numpy as np
 
 from keras.models import Sequential
 from keras.layers import SimpleRNN, Dense
-#from keras import initializers
-#from sklearn.model_selection import train_test_split
-
-#from data_encoding import premise_decoder
-
-
-# def _indexing(x, indices):
-#     """
-#     :param x: array from which indices has to be fetched
-#     :param indices: indices to be fetched
-#     :return: sub-array from given array and indices
-#     """
-#     # np array indexing
-#     if hasattr(x, 'shape'):
-#         return x[indices]
-
-#     # list indexing
-#     return [x[idx] for idx in indices]
-
-# def train_test_split(*arrays, test_size=0.25, random_seed=None):
-#     # checks
-#     assert 0 <= test_size < 1
-#     #assert len(arrays) > 0
-#     length = len(arrays[0])
-#     # for i in arrays:
-#     #     assert len(i) == length
-
-#     n_test = int(np.ceil(length*test_size))
-#     n_train = length - n_test
-
-#     perm = np.random.RandomState(random_seed).permutation(length)
-#     test_indices = perm[:n_test]
-#     train_indices = perm[n_test:]
-
-#     return list(chain.from_iterable((x[train_indices], x[test_indices]) for x in arrays))
 
 def permute(*arrays, random_seed=None):
     assert len(arrays) > 0
@@ -75,49 +40,6 @@ def log_results(all_pred, Y, n):
 
     f.close()
 
-# Show statistics and results
-def stats(all_pred, Y_train, Y_test):
-    statistics = {}
-    for y in Y_train:
-        pr_used = sum(y)
-        if pr_used in statistics.keys():
-            statistics[pr_used][0] += 1
-        else:
-            statistics[pr_used] = [1, 0, 0]
-
-    for i in range(len(Y_test)):
-        prediction = np.round(all_pred[i])
-        actual_label = Y_test[i]
-        result = int(all(prediction == actual_label))
-        pr_used = sum(actual_label)    
-
-        if pr_used in statistics.keys():
-            statistics[pr_used][1] += 1
-            statistics[pr_used][2] += result
-        else:
-            statistics[pr_used] = [0, 1, result]
-
-    #log_results(all_pred, Y_test) # create a log file text
-
-    #print statistics
-    print('Train/validation data =', len(Y_train), '\nTests =', len(Y_test))
-    overall = np.round(100 * sum([statistics[i][2] for i in statistics.keys()]) / len(Y_test), decimals=2)
-    overall_p = np.round(100 * sum([statistics[i][2] for i in statistics.keys() if i != 0]) / len([y for y in Y_test if sum(y) > 0]), decimals=2)
-    print('Overall correct tests = {}%'.format(overall))
-    print('Overall correct valid tests = {}%'.format(overall_p))
-    print()
-    print('Length', 'Train', 'Test', 'Correct', 'Percentage', sep='\t')
-    print('------------------------------------------')
-    for i in sorted(statistics):
-        train = statistics[i][0]
-        test = statistics[i][1]
-        correct = statistics[i][2]
-        if test == 0: 
-            percentage = 0
-        else: 
-            percentage = np.round((correct*100)/test, decimals=2)        
-        print(i, train, test, correct, '{}%'.format(percentage), sep='\t')
-
 # PLOT LOSS AND ACCURACY HISTORY
 def plot_loss_accuracy(loss, val_loss, acc, val_acc):
     fig = plt.figure(figsize=(8, 4))
@@ -144,7 +66,6 @@ def plot_loss_accuracy(loss, val_loss, acc, val_acc):
 # Model types: {Multilayer Perceptron: 'MLP', (Simple) Recurrent Neural Network: 'RNN'}
 def fit_model(X, Y, model_type = 'MLP', **options): 
     # CHECK OPTIONS
-    #plot=True, model_name=None, n_perceptrons=500, h_layers=3, n_epochs=30, batch_size=32, split = [0.5, 0.25, 0.25]
 
     # plot training history
     if 'plot' in options.keys():
@@ -168,12 +89,6 @@ def fit_model(X, Y, model_type = 'MLP', **options):
     else:
         n_perceptrons = 200
 
-    # number of hidden layers
-    # if 'h_layers' in options.keys():
-    #     h_layers = options['h_layers'] # integer > 0
-    # else:
-    #     h_layers = 1 # default value
-
     # number of epochs
     if 'n_epochs' in options.keys():
         n_epochs = options['n_epochs'] # integer > 0
@@ -185,19 +100,6 @@ def fit_model(X, Y, model_type = 'MLP', **options):
         batch_size = options['batch_size'] # integer > 0
     else:
         batch_size = 20 # default value: 
-
-    # percentages of the split
-    # if 'split' in options.keys():
-    #     split = options['split'] # list of percentages for training/validation/test
-    #     assert sum(split) == 1, 'The sum of all values in "split" must be exactly 1'
-    # else:
-    #     split = [0.65, 0.1, 0.25] # default value
-
-    # stratification
-    # if 'stratify' in options.keys() and options['stratify'] == False: # do not stratify split
-    #     strat = None
-    # else:
-    #     strat = [sum(y) for y in Y] # default option    
 
     # MLP activation function for hidden layers:
     if 'activation_function' in options.keys():
@@ -211,14 +113,6 @@ def fit_model(X, Y, model_type = 'MLP', **options):
     else:
         opt = 'Adam'
 
-    # DATA SPLIT    
-    #val_size = split[1] / (1 - split[2])    
-    #if split[2] == 0:
-    #    X_train = X
-    #    Y_train = Y
-    #else:
-        #X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = split[2], stratify = strat)
-    #X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = split[2])
     X_train, Y_train = permute(X, Y)
 
     # MODEL DEFINITION    
@@ -228,8 +122,6 @@ def fit_model(X, Y, model_type = 'MLP', **options):
     # Multilayer Perceptron (1 layer)
     if model_type == 'MLP':
         model.add(Dense(n_perceptrons, input_dim = X.shape[1], activation=activation_function)) # hidden layer 1
-        # for i in range(h_layers-1):
-        #     model.add(Dense(n_perceptrons, activation=activation_function)) # hidden layer(s)
 
     # Simple Recurrent Neural Network (2 layers)
     elif model_type == 'RNN':
@@ -250,9 +142,6 @@ def fit_model(X, Y, model_type = 'MLP', **options):
     if plot:
         plot_loss_accuracy(H.history['loss'], H.history['val_loss'], H.history['accuracy'], H.history['val_accuracy']) 
 
-    # if split[2] > 0:
-    #     stats(model.predict(X_test), Y_train, Y_test)
-
     return model
 
 # function to print statistics from tested data
@@ -270,8 +159,6 @@ def show_results(all_pred, Y):
             results[pr_used][1] += result
         else:
             results[pr_used] = [1, result]
-
-    #log_results(all_pred, Y) # create a log file text
 
     # print statistics from dictionary    
     print('Number of tests performed =', len(Y))
