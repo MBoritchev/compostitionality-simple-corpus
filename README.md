@@ -1,6 +1,6 @@
 # Summary
 
-This is the code accompanying the paper _Compositionality in a simple corpus_, presented at the LIFT TAL 2022 : Journées Jointes des Groupements de Recherche « Linguistique Informatique, Formelle et de Terrain » et « Traitement Automatique des Langues ». The paper can be found here: https://hal.archives-ouvertes.fr/hal-03859310/document#page=64.
+This is the code accompanying the paper _Compositionality in a simple corpus_, presented at the LIFT TAL 2022 : Journées Jointes des Groupements de Recherche « Linguistique Informatique, Formelle et de Terrain » et « Traitement Automatique des Langues ». The paper can be found here: https://hal.archives-ouvertes.fr/hal-03859310/document#page=64. The code is distributed under MIT License. The data is distributed under CC-BY-SA-4.0 license.
 
 This code requires the following specifications to be ran:
 - python version 3.7.15
@@ -20,3 +20,5 @@ This repository contains 4 folders.
 - `Initial-experiment` contains the code and data relative to the initial experiment in our paper, using the example knowledge base from the `Knowledge-base` folder: the scripts needed to run it along with output logs of our run. There are two options to run this code: (1) open the file "initial_experiment.ipynb" in Google Colab and run each cell; (2) download the repository and open the file "initial_experiment.ipynb" and run it from cell 3.
 - `Compositionality-experiments` contains the code and data relative to the compositionality experiments in our paper, using the example knowledge base from the `Knowledge-base` folder: the scripts needed to run them along with output logs of our runs.
 - `Hamming-distances` contains the code and data relative to the error analysis of logs from the `Initial-experiment` and `Compositionality-experiments` folders: the scripts needed to run them along with plotted data from our runs.
+
+All scripts in this repository can be ran after modifying the first line of the code, which corresponds to the absolute path to the needed folder. 
